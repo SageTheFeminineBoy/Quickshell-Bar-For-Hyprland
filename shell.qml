@@ -1,3 +1,5 @@
+// For anyone reading this, this entire file was vibe coded, no don't ask me how it works. I barely understand how it works myself. Genuinely spent time reading the documentation, I know surprising, but like hell, if you understand it good. Means I coded something right for once. Anyways bye :3c
+
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Wayland
