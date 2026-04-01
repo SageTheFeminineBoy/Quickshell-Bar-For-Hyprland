@@ -11,8 +11,9 @@ PanelWindow {
     QtObject {
         id: positions
         property real launcherpos: 7.5
-        property real workspaceswitcherpos: 35
-        property real calenderpos: 190
+        property real workspaceswitcherpos: 47.5
+        property real calenderpos: 500
+        property real powerpos: 1867.5
     }
     QtObject {
         id: colours
@@ -21,9 +22,10 @@ PanelWindow {
         property color iconcolour: "#e6e6e6"
         property color workspaceactive: "#e6e6e6"
         property color workspaceinactive: "#505253"
-        property color workspaceactiveicon: "#505253"
-        property color workspaceinactiveicon: "#e6e6e6"
+        property color workspaceempty: "#363738"
         property color currentdaycal: "#ffffff"
+        property color powerhover: "#505253"
+        property color dividercolor: "#505253"
     }
     QtObject {
         id: calender
@@ -51,14 +53,13 @@ PanelWindow {
 
     Rectangle {
         anchors.fill: parent
-        color: colours.bgcolor
+        color: "transparent"
         radius: 10
     }
     ApplicationLauncher {
         anchors {
             top: parent.top
             left: parent.left
-            topMargin: 5
             leftMargin: positions.launcherpos
         }
     }
@@ -66,7 +67,6 @@ PanelWindow {
         anchors {
             top: parent.top
             left: parent.left
-            topMargin: 5
             leftMargin: positions.workspaceswitcherpos
         }
     }
@@ -74,8 +74,14 @@ PanelWindow {
         anchors {
             top: parent.top
             left: parent.left
-            topMargin: 5
             leftMargin: positions.calenderpos
+        }
+    }
+    PowerMenu {
+        anchors {
+            top: parent.top
+            left: parent.left
+            leftMargin: positions.powerpos
         }
     }
 }

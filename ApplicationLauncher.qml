@@ -6,16 +6,23 @@ import QtQuick.Controls
 
 Item {
     Rectangle {
-        id: applicationlauncher
-        color: colours.basecolor
-        width: 20
-        height: 20
-        radius: 7
-        Text {
+        height: 30
+        width: 35
+        radius: 30
+        color: colours.bgcolor
+        Rectangle {
+            id: applicationlauncher
             anchors.centerIn: parent
-            color: colours.iconcolour
-            text: ""
-            font.pixelSize: fonts.iconsize
+            color: colours.basecolor
+            width: 20
+            height: 20
+            radius: 20
+            Text {
+                anchors.centerIn: parent
+                color: colours.iconcolour
+                text: ""
+                font.pixelSize: fonts.iconsize
+            }
         }
     }
 }

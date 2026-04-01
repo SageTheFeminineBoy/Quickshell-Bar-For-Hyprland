@@ -4,297 +4,128 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
-Item {
+Rectangle {
+    id: outer
+    radius: 30
+    color: colours.bgcolor
+    width: switcher.width + 7.5 * 2
+    height: 30
     Rectangle {
-        color: colours.basecolor
-        width: 147.5
+        id: switcher
         height: 20
-        radius: 7
-        Rectangle {
-            id: workspaceIndicator1
-            anchors {
-                top: parent.top
-                left: parent.left
-                topMargin: 2.5
+        radius: 10
+        color: colours.basecolor
+        anchors.centerIn: parent
+
+        property real minWidth: 145
+        property real maxWidth: 342.5
+        property int activeWorkspaceId: -1
+        property var toplevelsList: []
+
+        property var filtered: {
+            let base = [];
+            for (let i = 1; i <= 10; i++) {
+                base.push({
+                    id: i
+                });
             }
-            states: [
-                State {
-                    name: "active"
-                    when: Hyprland.focusedWorkspace.id === 1
-                    PropertyChanges {
-                        target: workspaceIndicator1
-                        width: 35
-                        anchors.leftMargin: 7.5
-                        color: colours.workspaceactive
-                    }
-                },
-                State {
-                    name: "2active"
-                    when: Hyprland.focusedWorkspace.id === 2
-                    PropertyChanges {
-                        target: workspaceIndicator1
-                        width: 25
-                        anchors.leftMargin: 7.5
-                        color: colours.workspaceinactive
-                    }
-                },
-                State {
-                    name: "3active"
-                    when: Hyprland.focusedWorkspace.id === 3
-                    PropertyChanges {
-                        target: workspaceIndicator1
-                        width: 25
-                        anchors.leftMargin: 7.5
-                        color: colours.workspaceinactive
-                    }
-                },
-                State {
-                    name: "4active"
-                    when: Hyprland.focusedWorkspace.id === 4
-                    PropertyChanges {
-                        target: workspaceIndicator1
-                        width: 25
-                        anchors.leftMargin: 7.5
-                        color: colours.workspacineactive
-                    }
-                }
-            ]
-            transitions: Transition {
-                ParallelAnimation {
-                    NumberAnimation {
-                        properties: "width,anchors.leftMargin"
-                        duration: 300
-                        easing.type: Easing.InOutQuad
-                    }
-                    ColorAnimation {
-                        duration: 300
-                    }
-                }
-            }
-            width: Hyprland.focusedWorkspace.id === 1 ? 35 : 25
-            height: 15
-            radius: 7
-            color: Hyprland.focusedWorkspace.id === 1 ? colours.workspaceactive : colours.workspaceinactive
-            MouseArea {
-                anchors.fill: parent
-                onClicked: {
-                    Hyprland.dispatch("workspace 1");
-                }
+            return base;
+        }
+
+        property bool showOccupiedOnly: false
+
+        property var visableWorkspaces: {
+            let _ = activeWorkspaceId;
+            let __ = toplevelsList;
+
+            if (!filtered)
+                return [];
+
+            if (!showOccupiedOnly)
+                return filtered;
+
+            return filtered.filter(ws => {
+                if (ws.id === activeWorkspaceId)
+                    return true;
+
+                return toplevelsList.some(tl => tl.workspace?.id === ws.id);
+            });
+        }
+
+        Timer {
+            interval: 100
+            running: true
+            repeat: true
+            onTriggered: {
+                switcher.activeWorkspaceId = Hyprland.focusedWorkspace?.id ?? -1;
+                switcher.toplevelsList = Array.from(Hyprland.toplevels?.values || []);
             }
         }
-        Rectangle {
-            id: workspaceIndicator2
-            anchors {
-                top: parent.top
-                left: parent.left
-                topMargin: 2.5
+
+        width: {
+            let total = 0;
+            const workspaces = visableWorkspaces;
+
+            for (let i = 0; i < workspaces.length; i++) {
+                let ws = workspaces[i];
+
+                let isActive = ws.id === activeWorkspaceId;
+                let isOccupied = toplevelsList.some(tl => tl.workspace?.id === ws.id);
+
+                total += isActive ? 35 : (isOccupied ? 25 : 10);
+
+                if (i !== workspaces.length - 1)
+                    total += 7.5;
             }
-            states: [
-                State {
-                    name: "1active"
-                    when: Hyprland.focusedWorkspace.id === 1
-                    PropertyChanges {
-                        target: workspaceIndicator2
-                        width: 25
-                        anchors.leftMargin: 50
-                        color: colours.workspaceinactive
-                    }
-                },
-                State {
-                    name: "active"
-                    when: Hyprland.focusedWorkspace.id === 2
-                    PropertyChanges {
-                        target: workspaceIndicator2
-                        width: 35
-                        anchors.leftMargin: 40
-                        color: colours.workspaceactive
-                    }
-                },
-                State {
-                    name: "3active"
-                    when: Hyprland.focusedWorkspace.id === 3
-                    PropertyChanges {
-                        target: workspaceIndicator2
-                        width: 25
-                        anchors.leftMargin: 40
-                        color: colours.workspaceinactive
-                    }
-                },
-                State {
-                    name: "4active"
-                    when: Hyprland.focusedWorkspace.id === 4
-                    PropertyChanges {
-                        target: workspaceIndicator2
-                        width: 25
-                        anchors.leftMargin: 40
-                        color: colours.workspaceinactive
-                    }
-                }
-            ]
-            transitions: Transition {
-                ParallelAnimation {
-                    NumberAnimation {
-                        properties: "width,anchors.leftMargin"
-                        duration: 300
-                        easing.type: Easing.InOutQuad
-                    }
-                    ColorAnimation {
-                        duration: 300
-                    }
-                }
-            }
-            width: Hyprland.focusedWorkspace.id === 2 ? 35 : 25
-            height: 15
-            radius: 7
-            color: Hyprland.focusedWorkspace.id === 2 ? colours.workspaceactive : colours.workspaceinactive
-            MouseArea {
-                anchors.fill: parent
-                onClicked: {
-                    Hyprland.dispatch("workspace 2");
-                }
+
+            return Math.max(minWidth, Math.min(maxWidth, total)) + 15;
+        }
+
+        Behavior on width {
+            NumberAnimation {
+                duration: 200
+                easing.type: Easing.InOutQuad
             }
         }
-        Rectangle {
-            id: workspaceIndicator3
-            anchors {
-                top: parent.top
-                left: parent.left
-                topMargin: 2.5
-            }
-            states: [
-                State {
-                    name: "1active"
-                    when: Hyprland.focusedWorkspace.id === 1
-                    PropertyChanges {
-                        target: workspaceIndicator3
-                        width: 25
-                        anchors.leftMargin: 82.5
-                        color: colours.workspaceinactive
+
+        Row {
+            anchors.fill: parent
+            anchors.leftMargin: 7.5
+            anchors.rightMargin: 7.5
+            spacing: 7.5
+            anchors.verticalCenter: parent.verticalCenter
+
+            Repeater {
+                model: switcher.visableWorkspaces
+
+                Rectangle {
+                    radius: 7
+                    anchors.verticalCenter: parent.verticalCenter
+                    property bool isActive: modelData.id === switcher.activeWorkspaceId
+                    property bool isOccupied: switcher.toplevelsList.some(tl => tl.workspace?.id === modelData.id)
+
+                    width: isActive ? 35 : (isOccupied ? 25 : 10)
+                    height: isActive ? 15 : 10
+
+                    color: isActive ? colours.workspaceactive : (isOccupied ? colours.workspaceinactive : colours.workspaceempty)
+
+                    Behavior on width {
+                        NumberAnimation {
+                            duration: 200
+                            easing.type: Easing.InOutQuad
+                        }
                     }
-                },
-                State {
-                    name: "2active"
-                    when: Hyprland.focusedWorkspace.id === 2
-                    PropertyChanges {
-                        target: workspaceIndicator3
-                        width: 25
-                        anchors.leftMargin: 82.5
-                        color: colours.workspaceinactive
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 200
+                        }
                     }
-                },
-                State {
-                    name: "active"
-                    when: Hyprland.focusedWorkspace.id === 3
-                    PropertyChanges {
-                        target: workspaceIndicator3
-                        width: 35
-                        anchors.leftMargin: 72.5
-                        color: colours.workspaceactive
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: Hyprland.dispatch("workspace " + modelData.id)
                     }
-                },
-                State {
-                    name: "4active"
-                    when: Hyprland.focusedWorkspace.id === 4
-                    PropertyChanges {
-                        target: workspaceIndicator3
-                        width: 25
-                        anchors.leftMargin: 72.5
-                        color: colours.workspaceinactive
-                    }
-                }
-            ]
-            transitions: Transition {
-                ParallelAnimation {
-                    NumberAnimation {
-                        properties: "width,anchors.leftMargin"
-                        duration: 300
-                        easing.type: Easing.InOutQuad
-                    }
-                    ColorAnimation {
-                        duration: 300
-                    }
-                }
-            }
-            width: Hyprland.focusedWorkspace.id === 3 ? 35 : 25
-            height: 15
-            radius: 7
-            color: Hyprland.focusedWorkspace.id === 3 ? colours.workspaceactive : colours.workspaceinactive
-            MouseArea {
-                anchors.fill: parent
-                onClicked: {
-                    Hyprland.dispatch("workspace 3");
-                }
-            }
-        }
-        Rectangle {
-            id: workspaceIndicator4
-            anchors {
-                top: parent.top
-                left: parent.left
-                topMargin: 2.5
-            }
-            states: [
-                State {
-                    name: "1active"
-                    when: Hyprland.focusedWorkspace.id === 1
-                    PropertyChanges {
-                        target: workspaceIndicator4
-                        width: 25
-                        anchors.leftMargin: 115
-                        color: colours.workspaceinactive
-                    }
-                },
-                State {
-                    name: "2active"
-                    when: Hyprland.focusedWorkspace.id === 2
-                    PropertyChanges {
-                        target: workspaceIndicator4
-                        width: 25
-                        anchors.leftMargin: 115
-                        color: colours.workspaceinactive
-                    }
-                },
-                State {
-                    name: "3active"
-                    when: Hyprland.focusedWorkspace.id === 3
-                    PropertyChanges {
-                        target: workspaceIndicator4
-                        width: 25
-                        anchors.leftMargin: 115
-                        color: colours.workspaceinactive
-                    }
-                },
-                State {
-                    name: "active"
-                    when: Hyprland.focusedWorkspace.id === 4
-                    PropertyChanges {
-                        target: workspaceIndicator4
-                        width: 35
-                        anchors.leftMargin: 105
-                        color: colours.workspaceactive
-                    }
-                }
-            ]
-            transitions: Transition {
-                ParallelAnimation {
-                    NumberAnimation {
-                        properties: "width,anchors.leftMargin"
-                        duration: 300
-                        easing.type: Easing.InOutQuad
-                    }
-                    ColorAnimation {
-                        duration: 300
-                    }
-                }
-            }
-            width: Hyprland.focusedWorkspace.id === 4 ? 35 : 25
-            height: 15
-            radius: 7
-            color: Hyprland.focusedWorkspace.id === 4 ? colours.workspaceactive : colours.workspaceinactive
-            MouseArea {
-                anchors.fill: parent
-                onClicked: {
-                    Hyprland.dispatch("workspace 4");
                 }
             }
         }
